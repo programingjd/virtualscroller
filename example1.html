@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Example 1</title></head>
+<style>
+html{width:100%;height:100%;background:#ddd;color:#333;font-size:24px;margin:0;padding:0}
+body{margin:0;padding:0;min-height:100%;min-width:100%}
+virtual-scroller{position:absolute;top:0;right:0;bottom:0;left:0;font-family:monospace}
+.row,[slot]{height:1em;padding:0 1em}
+[slot]{font-weight:bold}
+</style>
+<body>
+<virtual-scroller>
+  <div slot="header">Header</div>
+  <template><div class="row"></div></template>
+  <div slot="footer">Footer</div>
+</virtual-scroller>
+<div></div>
+<script>
+(async()=>{
+  await import('./virtualscroller.mjs');
+  const element=document.querySelector('virtual-scroller');
+  const data=new Array(500);
+  for (let i=0; i<data.length; ++i){
+    data[i] = Math.ceil(Math.random()*100);
+  }
+  element.model={
+    count: data.length,
+    cols: 1,
+    update:(row,index)=>row.innerText=data[index]
+  };
+})();
+</script>
+</body>
+</html>

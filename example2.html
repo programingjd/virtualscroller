@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Example 1</title></head>
+<style>
+  html{width:100%;height:100%;background:#ddd;color:#333;font-size:24px;margin:0;padding:0}
+  body{margin:0;padding:0;min-height:100%;min-width:100%}
+  virtual-scroller{position:absolute;top:0;right:0;bottom:0;left:0;font-family:monospace}
+  .row{height:1em}
+  [slot]{height:2em;font-weight:bold;padding:0 1em}
+  .row{display:flex}
+  .row>span{padding:0 1em;box-sizing:border-box;min-width:128px}
+</style>
+<body>
+<virtual-scroller>
+  <div slot="header">Header</div>
+  <template><div class="row"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></template>
+  <div slot="footer">Footer</div>
+</virtual-scroller>
+<div></div>
+<script>
+  (async()=>{
+    await import('./virtualscroller.mjs');
+    const element=document.querySelector('virtual-scroller');
+    const data=new Array(500);
+    for (let i=0; i<data.length; ++i){
+      data[i] = Math.ceil(Math.random()*100);
+    }
+    console.log(data);
+    element.model={
+      count: (cols)=>{const r=Math.ceil(data.length/cols);console.log('count:',r);return r},
+      cols: ()=>{const r=Math.min(8,Math.max(1,Math.floor(document.body.clientWidth/128)));console.log('cols:',r);return r},
+      update:(row,index,cols)=>{
+        const spans=row.querySelectorAll('span');
+        spans.forEach((span,i)=>{
+          span.style.display=i>=cols?'none':'inline-block';
+          span.innerText=i>=cols?'':data[index*cols+i];
+        });
+      }
+    };
+  })();
+</script>
+</body>
+</html>
