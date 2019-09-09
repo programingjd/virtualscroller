@@ -59,8 +59,9 @@
       update:(row,index,cols)=>{
         const spans=row.querySelectorAll('span');
         spans.forEach((span,i)=>{
+          const k=index*cols+i;
           span.style.display=i>=cols?'none':'inline-block';
-          span.innerText=i>=cols?'':data[index*cols+i];
+          span.innerText=i<cols&&k<data.length?`${data[k]}`:'';
         });
       }
     };

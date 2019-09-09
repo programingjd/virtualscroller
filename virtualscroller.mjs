@@ -46,8 +46,9 @@ _resize(){
     const cols=typeof model.cols==='function'?model.cols():model.cols||1;
     const count=typeof (model.count||model.length)==='function'?
                 (model.count||model.length)(cols):(model.count||model.length);
-    const initial=this._container.style.height.length === 0;
-    this._container.style.height=`${Math.max(this._height, count * this._itemHeight)}px`;
+    const initial=this._container.style.height.length===0;
+    this._container.style.height=`${Math.max(this._height,count*this._itemHeight)}px`;
+    this._window.style.height=`${this._elements.length*this._itemHeight}px`;
     if (!initial)requestAnimationFrame(this._render);
   }
 }
