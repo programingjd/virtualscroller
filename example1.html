@@ -19,7 +19,7 @@ virtual-scroller{position:absolute;top:0;right:0;bottom:0;left:0;font-family:mon
 (async()=>{
   await import('./virtualscroller.mjs');
   const element=document.querySelector('virtual-scroller');
-  const data=new Array(500);
+  const data=new Array(50000);
   for (let i=0; i<data.length; ++i){
     data[i] = Math.ceil(Math.random()*100);
   }

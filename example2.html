@@ -21,7 +21,7 @@
   (async()=>{
     await import('./virtualscroller.mjs');
     const element=document.querySelector('virtual-scroller');
-    const data=new Array(500);
+    const data=new Array(50000);
     for (let i=0; i<data.length; ++i){
       data[i] = Math.ceil(Math.random()*100);
     }
