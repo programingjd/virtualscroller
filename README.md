@@ -18,6 +18,8 @@
 
 2. Add the element to the DOM.
 
+    You need to make sure that the height of the element is set so that it doesn't depend on its content.
+    
     HTML:
     ```html
     <virtual-scroller>

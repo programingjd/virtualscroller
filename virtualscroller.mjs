@@ -3,6 +3,9 @@ constructor(){
   super();
   this._height=0;
   this._itemHeight=0;
+  this._containerHeight=0;
+  this._windowHeight=0;
+  this._cols=1;
   this._container=null;
   this._window=null;
   this._template=null;
@@ -16,18 +19,19 @@ constructor(){
   this._onscroll=this._onscroll.bind(this);
   this._addElement=this._addElement.bind(this);
   this.attachShadow({mode:'open'}).innerHTML=`<style>
-:host *{margin:0;padding:0;box-sizing:border-box}
-:host>div{position:relative;overflow:hidden}
-:host>div>div{position:relative;overflow:hidden}
-:host>div>div>div{position:absolute;top:0;right:0;bottom:0;left:0;overflow:hidden;will-change:transform}
-</style><div><slot name="header"></slot><div><div><slot></slot></div></div><slot name="footer"></slot></div>`;
+:host{position:relative;display:block;overflow:auto}
+:host,:host>*{margin:0;padding:0}
+:host>div{display:block;position:relative}
+:host>div[data-container]{display:block;overflow:hidden}
+:host>div[data-container]>div[data-window]{display:block;position:absolute;width:100%:height:0;overflow:hidden;will-change:transform}
+</style><div><slot name="header"><</slot></div><div data-container><div data-window><slot></slot></div></div><div><slot name="footer"></slot></div>`;
 }
 connectedCallback(){
-  this._container=this.shadowRoot.querySelector(':host>div>div');
-  this._window=this.shadowRoot.querySelector(':host>div>div>div');
+  this._container=this.shadowRoot.querySelector(':host>div[data-container]');
+  this._window=this.shadowRoot.querySelector(':host>div[data-container]>div[data-window]');
   this._resizer=new ResizeObserver(_=>{if(this._ready)this._resize()});
   this._resizer.observe(this.shadowRoot.host);
-  window.addEventListener('scroll',this._onscroll);
+  this.addEventListener('scroll',this._onscroll);
   requestAnimationFrame(()=>{
     this._template=this.querySelector('template');
     const el=this._addElement();
@@ -43,13 +47,15 @@ _resize(){
     const n=Math.max(1,(Math.trunc(this._height/this._itemHeight)+2)*3);
     while(this._elements.length>n)this._elements.pop();
     while(this._elements.length<n)this._addElement();
-    const cols=typeof model.cols==='function'?model.cols():model.cols||1;
+    this._cols=typeof model.cols==='function'?model.cols():model.cols||1;
     const count=typeof (model.count||model.length)==='function'?
-                (model.count||model.length)(cols):(model.count||model.length);
+                (model.count||model.length)(this._cols):(model.count||model.length);
     const initial=this._container.style.height.length===0;
-    this._container.style.height=`${Math.max(this._height,count*this._itemHeight)}px`;
-    this._window.style.height=`${this._elements.length*this._itemHeight}px`;
-    if (!initial)requestAnimationFrame(this._render);
+    this._containerHeight=count*this._itemHeight;
+    this._container.style.height=`${this._containerHeight}px`;
+    this._windowHeight=this._elements.length*this._itemHeight;
+    this._window.style.height=`${this._windowHeight}px`;
+    /*if (!initial)*/requestAnimationFrame(this._render);
   }
 }
 disconnectedCallback(){
@@ -63,24 +69,22 @@ _onscroll(){
 }
 _render(){
   this._dirty=false;
-  const y=window.scrollY;
-  const pos=Math.trunc(y/this._itemHeight);
-  const elements=this._elements;
-  const offset=(pos-elements.length/3-4)*this._itemHeight;
-  this._window.style.transform=`translateY(${offset}px)`;
-  let cur=pos-elements.length/3-4;
-  const over=cur+elements.length;
+  const scroll=this.scrollTop;
   const model=this._model;
-  const cols=typeof model.cols==='function'?model.cols():model.cols||1;
+  const cols=this._cols;
   const max=typeof (model.count||model.length)==='function'?
-  (model.count||model.length)(cols)-1:(model.count||model.length)-1;
-  let i=-1;
-  while(cur<over){
-    const el=elements[++i];
-    if(cur<0||cur>max)el.removeAttribute('visible');
-    else{el.setAttribute('visible',true);model.update(el,cur,cols)}
-    ++cur;
-  }
+    (model.count||model.length)(cols)-1:(model.count||model.length)-1;
+
+  const offset=this._elements.length/3-4;
+  const start=Math.trunc(scroll/this._itemHeight)-offset;
+
+  let y=scroll%this._itemHeight;
+  this._elements.forEach((el,i)=>{
+    const k=start+i;
+    if(k<0||k>max) el.removeAttribute('visible');
+    else{el.setAttribute('visible',true);model.update(el,k,cols)}
+  });
+  this._window.style.transform=`translateY(${start*this._itemHeight}px)`;
   if(this._dirty)requestAnimationFrame(this._render);
 }
 _addElement(){
